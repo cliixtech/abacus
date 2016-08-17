@@ -1,0 +1,11 @@
+machine:
+    java:
+        version: oraclejdk8
+
+test:
+    override:
+        - ./gradlew check jacocoTestReport
+    post:
+    - cp -rf build/reports/* $CIRCLE_TEST_REPORTS/
+
+
