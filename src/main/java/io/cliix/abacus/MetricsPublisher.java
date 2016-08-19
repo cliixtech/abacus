@@ -11,8 +11,7 @@ public class MetricsPublisher {
     private ScheduledExecutorService executor;
     private PublishTask task;
 
-    public MetricsPublisher(String email, String apiToken, MetricsCache cache, long period,
-            TimeUnit unit) {
+    public MetricsPublisher(String email, String apiToken, MetricsCache cache, long period, TimeUnit unit) {
         this.executor = Executors.newSingleThreadScheduledExecutor();
         this.task = new PublishTask(email, apiToken, cache);
         executor.schedule(this.task, period, unit);
@@ -50,7 +49,7 @@ public class MetricsPublisher {
         }
 
         private void cleanCache() {
-            
+
         }
     }
 }

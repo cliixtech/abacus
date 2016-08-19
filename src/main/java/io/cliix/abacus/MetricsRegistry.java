@@ -25,8 +25,7 @@ public class MetricsRegistry {
     }
 
     public void addGaugeMeasurement(Number period, String name, Number value) {
-        this.addMeasurement(
-                SingleValueGaugeMeasurement.builder(name, value).setPeriod(period).build());
+        this.addMeasurement(SingleValueGaugeMeasurement.builder(name, value).setPeriod(period).build());
     }
 
     private void addMeasurement(Measurement measurement) {

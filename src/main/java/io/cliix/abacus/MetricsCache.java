@@ -45,7 +45,7 @@ public class MetricsCache implements Listener<Measurement> {
     }
 
     private boolean reachedCapacity() {
-        return (this.cacheFile.length()/1024/1024 >= this.maxSizeMb);
+        return (this.cacheFile.length() / 1024 / 1024 >= this.maxSizeMb);
     }
 
     private void trimFile() {
