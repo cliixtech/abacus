@@ -15,7 +15,8 @@ public class MetricsPublisher {
     private final ScheduledExecutorService executor;
     private final PublishTask task;
 
-    public MetricsPublisher(String email, String apiToken, String source, MetricsCache cache, long period, TimeUnit unit) {
+    public MetricsPublisher(String email, String apiToken, String source, MetricsCache cache, long period,
+            TimeUnit unit) {
         this.executor = Executors.newSingleThreadScheduledExecutor();
         this.task = new PublishTask(email, apiToken, source, cache);
         this.executor.schedule(this.task, period, unit);

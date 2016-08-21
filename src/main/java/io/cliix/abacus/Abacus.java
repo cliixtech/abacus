@@ -77,7 +77,8 @@ public class Abacus {
         public Abacus build() throws IOException {
             MetricsCache cache = new MetricsCache(this.file, this.maxCacheEntries);
             MetricsRegistry registry = new MetricsRegistry(cache);
-            MetricsPublisher publisher = new MetricsPublisher(this.email, this.token, this.source, cache, this.period, this.unit);
+            MetricsPublisher publisher =
+                    new MetricsPublisher(this.email, this.token, this.source, cache, this.period, this.unit);
             return new Abacus(registry, publisher);
         }
     }
