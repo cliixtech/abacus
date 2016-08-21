@@ -36,11 +36,12 @@ public class Abacus {
 
     public static class Builder {
         private File file;
-        private long maxSize;
+        private long maxCacheEntries;
         private String email;
         private String token;
         private long period;
         private TimeUnit unit;
+        private String source;
 
         public Builder libratoEmail(String email) {
             this.email = email;
@@ -63,15 +64,20 @@ public class Abacus {
             return this;
         }
 
-        public Builder cacheMaxSizeMb(long maxSizeMb) {
-            this.maxSize = maxSizeMb;
+        public Builder cacheMaxEntries(long maxCacheEntries) {
+            this.maxCacheEntries = maxCacheEntries;
+            return this;
+        }
+
+        public Builder source(String source) {
+            this.source = source;
             return this;
         }
 
         public Abacus build() throws IOException {
-            MetricsCache cache = new MetricsCache(this.file, this.maxSize);
+            MetricsCache cache = new MetricsCache(this.file, this.maxCacheEntries);
             MetricsRegistry registry = new MetricsRegistry(cache);
-            MetricsPublisher publisher = new MetricsPublisher(this.email, this.token, cache, this.period, this.unit);
+            MetricsPublisher publisher = new MetricsPublisher(this.email, this.token, this.source, cache, this.period, this.unit);
             return new Abacus(registry, publisher);
         }
     }

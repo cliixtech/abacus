@@ -2,59 +2,88 @@ package io.cliix.abacus;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.librato.metrics.Measurement;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
 import com.squareup.tape.ObjectQueue.Listener;
 
-public class MetricsCache implements Listener<Measurement> {
+public class MetricsCache {
 
-    private File cacheFile;
-    private long maxSizeMb;
-    private FileObjectQueue<Measurement> diskQ;
+    private final FileObjectQueue<Measurement> diskQ;
+    private final Lock monitor = new ReentrantLock();
 
-    public MetricsCache(File cacheFile, long maxSizeMb) throws IOException {
-        this.cacheFile = cacheFile;
-        this.maxSizeMb = maxSizeMb;
+    public MetricsCache(File cacheFile, long cacheMaxEntries) throws IOException {
         this.diskQ = new FileObjectQueue<>(cacheFile, new MeasurementGsonConverter());
-        this.diskQ.setListener(this);
+        this.diskQ.setListener(new CacheSizeListener(this, cacheMaxEntries));
     }
 
     public void add(Measurement entry) {
-        this.diskQ.add(entry);
-    }
-
-    public Measurement peek() {
-        return this.diskQ.peek();
-    }
-
-    public void remove() {
-        this.diskQ.remove();
-    }
-
-    public int size() {
-        return this.diskQ.size();
-    }
-
-    @Override
-    public void onAdd(ObjectQueue<Measurement> queue, Measurement entry) {
-        if (this.reachedCapacity()) {
-            this.trimFile();
+        this.monitor.lock();
+        try {
+            this.diskQ.add(entry);
+        } finally {
+            this.monitor.unlock();
         }
     }
 
-    private boolean reachedCapacity() {
-        return (this.cacheFile.length() / 1024 / 1024 >= this.maxSizeMb);
+    public Measurement peek() {
+        this.monitor.lock();
+        try {
+            return this.diskQ.peek();
+        } finally {
+            this.monitor.unlock();
+        }
     }
 
-    private void trimFile() {
-        this.diskQ.remove();
+    public void remove() {
+        this.monitor.lock();
+        try {
+            this.diskQ.remove();
+        } finally {
+            this.monitor.unlock();
+        }
     }
 
-    @Override
-    public void onRemove(ObjectQueue<Measurement> queue) {
-        // nothing to do here
+    public int size() {
+        this.monitor.lock();
+        try {
+            return this.diskQ.size();
+        } finally {
+            this.monitor.unlock();
+        }
     }
 
+    private class CacheSizeListener implements Listener<Measurement> {
+
+        private MetricsCache cache;
+        private long maxEntries;
+
+        public CacheSizeListener(MetricsCache metricsCache, long cacheMaxEntries) {
+            this.cache = metricsCache;
+            this.maxEntries = cacheMaxEntries;
+        }
+
+        @Override
+        public void onAdd(ObjectQueue<Measurement> queue, Measurement entry) {
+            if (this.isCacheBiggerThanItShould()) {
+                this.trimCache();
+            }
+        }
+
+        private boolean isCacheBiggerThanItShould() {
+            return this.cache.size() > this.maxEntries;
+        }
+
+        private void trimCache() {
+            this.cache.remove();
+        }
+
+        @Override
+        public void onRemove(ObjectQueue<Measurement> queue) {
+            // nothing to do here
+        }
+    }
 }
