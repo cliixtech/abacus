@@ -1,7 +1,5 @@
 package io.cliix.abacus;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -16,23 +14,51 @@ import com.librato.metrics.Sanitizer;
 public class MetricsPublisher {
 
     private static final Logger LOG = LoggerFactory.getLogger(MetricsPublisher.class);
-    private final ScheduledExecutorService executor;
-    private final PublishTask task;
+    private PublisherRunner runner;
+    private Thread publishThread;
 
     public MetricsPublisher(String email, String apiToken, String source, MetricsCache cache, long period,
             TimeUnit unit) {
-        this.executor = Executors.newSingleThreadScheduledExecutor();
-        this.task = new PublishTask(email, apiToken, source, cache);
-        LOG.info("Scheduling publish task to run periodically after {} {}", period, unit);
-        this.executor.schedule(this.task, period, unit);
+        PublishTask task = new PublishTask(email, apiToken, source, cache);
+        this.runner = new PublisherRunner(task, period, unit);
+        this.publishThread = new Thread(this.runner, "Abacus-MetricsPublisher");
+        LOG.info("Starting publish task to run periodically after {} {}", period, unit);
+        this.publishThread.start();
     }
 
     public void shutdown() {
-        this.executor.shutdown();
+        this.runner.stop();
+        this.publishThread.interrupt();
     }
 
-    static class PublishTask implements Runnable {
+    private static class PublisherRunner implements Runnable {
+        private boolean run = true;
+        private final long sleepMillis;
+        private final PublishTask task;
 
+        public PublisherRunner(PublishTask task, long period, TimeUnit unit) {
+            this.task = task;
+            this.sleepMillis = unit.toMillis(period);
+        }
+
+        public void stop() {
+            this.run = false;
+        }
+
+        @Override
+        public void run() {
+            while (this.run) {
+                try {
+                    Thread.sleep(this.sleepMillis);
+                    this.task.publish();
+                } catch (Exception e) {
+                    LOG.error("Error on Abacus-MetricsPublisher thread", e);
+                }
+            }
+        }
+    }
+
+    static class PublishTask {
         private static final String LIBRATO_API_URL = "https://metrics-api.librato.com/v1/metrics";
         private final MetricsCache cache;
         private final HttpPoster httpPoster;
@@ -48,8 +74,7 @@ public class MetricsPublisher {
             this.source = source;
         }
 
-        @Override
-        public void run() {
+        public void publish() {
             LOG.info("Publisher running. {} metrics to publish.", this.cache.size());
             while (this.cache.size() > 0) {
                 LibratoBatch batch = this.createMetricsBatch();

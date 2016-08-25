@@ -59,7 +59,7 @@ public class MetricsPublisherTest {
         when(this.poster.post(any(String.class), any(String.class))).thenReturn(future);
         when(response.getStatusCode()).thenReturn(200);
 
-        this.publisher.run();
+        this.publisher.publish();
 
         verify(this.poster, times(2)).post(any(String.class), captor.capture());
         assertThat(expectedPayload).isEqualTo(captor.getValue());
@@ -78,7 +78,7 @@ public class MetricsPublisherTest {
         when(this.poster.post(any(String.class), any(String.class))).thenReturn(future);
         when(response.getStatusCode()).thenReturn(200);
 
-        this.publisher.run();
+        this.publisher.publish();
 
         verify(this.cache).remove();
     }
@@ -96,7 +96,7 @@ public class MetricsPublisherTest {
         when(this.poster.post(any(String.class), any(String.class))).thenReturn(future);
         when(response.getStatusCode()).thenReturn(400);
 
-        this.publisher.run();
+        this.publisher.publish();
 
         verify(this.cache, never()).remove();
     }
