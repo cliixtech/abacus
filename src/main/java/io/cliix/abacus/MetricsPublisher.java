@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.librato.metrics.BatchResult;
-import com.librato.metrics.DefaultHttpPoster;
 import com.librato.metrics.HttpPoster;
 import com.librato.metrics.LibratoBatch;
 import com.librato.metrics.OkHttpPoster;
