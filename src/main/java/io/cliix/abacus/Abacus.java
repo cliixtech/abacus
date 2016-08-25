@@ -18,19 +18,19 @@ public class Abacus {
         this.registry.addCounterMeasurement(name, value);
     }
 
-    void addCounterMeasurement(Number period, String name, Long value) {
+    public void addCounterMeasurement(Number period, String name, Long value) {
         this.registry.addCounterMeasurement(period, name, value);
     }
 
-    void addGaugeMeasurement(String name, Number value) {
+    public void addGaugeMeasurement(String name, Number value) {
         this.registry.addGaugeMeasurement(name, value);
     }
 
-    void addGaugeMeasurement(Number period, String name, Number value) {
+    public void addGaugeMeasurement(Number period, String name, Number value) {
         this.registry.addGaugeMeasurement(period, name, value);
     }
 
-    void shutdown() {
+    public void shutdown() {
         this.publisher.shutdown();
     }
 
