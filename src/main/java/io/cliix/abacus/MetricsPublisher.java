@@ -9,6 +9,7 @@ import com.librato.metrics.BatchResult;
 import com.librato.metrics.DefaultHttpPoster;
 import com.librato.metrics.HttpPoster;
 import com.librato.metrics.LibratoBatch;
+import com.librato.metrics.OkHttpPoster;
 import com.librato.metrics.Sanitizer;
 
 public class MetricsPublisher {
@@ -22,6 +23,7 @@ public class MetricsPublisher {
         PublishTask task = new PublishTask(email, apiToken, source, cache);
         this.runner = new PublisherRunner(task, period, unit);
         this.publishThread = new Thread(this.runner, "Abacus-MetricsPublisher");
+        this.publishThread.setDaemon(true);
         LOG.info("Starting publish task to run periodically after {} {}", period, unit);
         this.publishThread.start();
     }
@@ -65,7 +67,7 @@ public class MetricsPublisher {
         private final String source;
 
         public PublishTask(String email, String apiToken, String source, MetricsCache cache) {
-            this(new DefaultHttpPoster(LIBRATO_API_URL, email, apiToken), source, cache);
+            this(new OkHttpPoster(LIBRATO_API_URL, email, apiToken), source, cache);
         }
 
         protected PublishTask(HttpPoster httpPoster, String source, MetricsCache cache) {

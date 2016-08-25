@@ -20,9 +20,10 @@ repositories {
 
 
 dependencies {
+    compile 'org.slf4j:slf4j-jdk14:1.7.21'
   compile(
     'com.squareup:tape:1.2.3',
-    'com.github.cliixtech:librato-java:cliix-1.0.0',
+    'com.github.cliixtech:librato-java:-SNAPSHOT',
     'com.google.code.gson:gson:2.7'
   )
   testCompile(
