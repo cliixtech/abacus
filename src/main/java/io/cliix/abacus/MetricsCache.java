@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.librato.metrics.Measurement;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
@@ -12,6 +15,7 @@ import com.squareup.tape.ObjectQueue.Listener;
 
 public class MetricsCache {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MetricsCache.class);
     private final FileObjectQueue<Measurement> diskQ;
     private final Lock monitor = new ReentrantLock();
 
@@ -21,6 +25,7 @@ public class MetricsCache {
     }
 
     public void add(Measurement entry) {
+        LOG.debug("Adding metric {}", entry);
         this.monitor.lock();
         try {
             this.diskQ.add(entry);
@@ -69,6 +74,7 @@ public class MetricsCache {
         @Override
         public void onAdd(ObjectQueue<Measurement> queue, Measurement entry) {
             if (this.isCacheBiggerThanItShould()) {
+                LOG.debug("Ops, cache is too big, removing oldest metric");
                 this.trimCache();
             }
         }

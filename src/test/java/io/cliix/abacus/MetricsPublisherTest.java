@@ -50,7 +50,7 @@ public class MetricsPublisherTest {
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
         String expectedPayload =
                 "{\"counters\":[],\"gauges\":[{\"period\":10,\"name\":\"metric\",\"value\":1}],\"source\":\"test\"}";
-        when(this.cache.size()).thenReturn(2).thenReturn(1).thenReturn(0);
+        when(this.cache.size()).thenReturn(2).thenReturn(2).thenReturn(1).thenReturn(0);
         Measurement m = SingleValueGaugeMeasurement.builder("metric", 1l).setPeriod(10l).build();
         when(this.cache.peek()).thenReturn(m);
         Response response = mock(Response.class);
@@ -69,7 +69,7 @@ public class MetricsPublisherTest {
     @SuppressWarnings("unchecked")
     public void run_removeMetricOnPostSuccess()
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        when(this.cache.size()).thenReturn(1).thenReturn(0);
+        when(this.cache.size()).thenReturn(1).thenReturn(1).thenReturn(0);
         Measurement m = SingleValueGaugeMeasurement.builder("metric", 1l).setPeriod(10l).build();
         when(this.cache.peek()).thenReturn(m);
         Response response = mock(Response.class);
