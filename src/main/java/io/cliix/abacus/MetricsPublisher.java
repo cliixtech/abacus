@@ -53,7 +53,7 @@ public class MetricsPublisher {
                     Thread.sleep(this.sleepMillis);
                     this.task.publish();
                 } catch (Throwable e) {
-                    LOG.error("Error on Abacus-MetricsPublisher thread", e);
+                    LOG.error("Ops, an error occurred o Abacus-MetricsPublisher thread.", e);
                 }
             }
         }

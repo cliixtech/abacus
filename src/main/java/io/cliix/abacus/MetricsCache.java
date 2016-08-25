@@ -25,7 +25,6 @@ public class MetricsCache {
     }
 
     public void add(Measurement entry) {
-        LOG.debug("Adding metric {}", entry);
         this.monitor.lock();
         try {
             this.diskQ.add(entry);
@@ -74,7 +73,7 @@ public class MetricsCache {
         @Override
         public void onAdd(ObjectQueue<Measurement> queue, Measurement entry) {
             if (this.isCacheBiggerThanItShould()) {
-                LOG.debug("Ops, cache is too big, removing oldest metric");
+                LOG.info("Ops, cache reached its limits, removing oldest metric");
                 this.trimCache();
             }
         }
