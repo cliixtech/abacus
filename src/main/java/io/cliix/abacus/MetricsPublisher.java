@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.librato.metrics.BatchResult;
 import com.librato.metrics.HttpPoster;
 import com.librato.metrics.LibratoBatch;
+import com.librato.metrics.Measurement;
 import com.librato.metrics.OkHttpPoster;
 import com.librato.metrics.Sanitizer;
 
@@ -97,8 +98,19 @@ public class MetricsPublisher {
         private LibratoBatch createMetricsBatch() {
             LibratoBatch batch =
                     new LibratoBatch(1, Sanitizer.LAST_PASS, 30, TimeUnit.SECONDS, "abacus", this.httpPoster);
-            batch.addMeasurement(this.cache.peek());
+            batch.addMeasurement(this.getMetric());
             return batch;
+        }
+
+        private Measurement getMetric() {
+            Measurement metric = this.cache.peek();
+            if (metric.getMeasureTime() != null) {
+                long delay = Clock.minutesFromNow(metric.getMeasureTime());
+                if (delay > 120) {
+                    metric = metric.adjustTime((delay - 110) * 60);
+                }
+            }
+            return metric;
         }
 
         private boolean publishMetrics(LibratoBatch batch) {

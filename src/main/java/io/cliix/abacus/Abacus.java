@@ -82,4 +82,22 @@ public class Abacus {
             return new Abacus(registry, publisher);
         }
     }
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        String email = args[0];
+        String token = args[1];
+        File f = new File("/tmp/cache.abacus");
+
+        Abacus abaco =
+                new Abacus.Builder()
+                        .cacheFile(f)
+                        .source("AbacusMain")
+                        .publishInterval(5, TimeUnit.SECONDS)
+                        .libratoToken(token)
+                        .libratoEmail(email)
+                        .cacheMaxEntries(10000)
+                        .build();
+        abaco.addCounterMeasurement("AbacusManualTesting", 5l);
+        Thread.sleep(10000);
+    }
 }

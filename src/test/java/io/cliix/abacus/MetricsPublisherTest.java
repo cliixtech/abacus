@@ -100,4 +100,30 @@ public class MetricsPublisherTest {
 
         verify(this.cache, never()).remove();
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void run_adjustOldMetric() throws IOException, InterruptedException, ExecutionException, TimeoutException {
+        when(this.cache.size()).thenReturn(1).thenReturn(0);
+        long now = Clock.now();
+        long measureTime = now - (180 * 60);
+        Measurement m =
+                SingleValueGaugeMeasurement.builder("metric", 1l).setMeasureTime(measureTime).setPeriod(10l).build();
+        long adjustedTime = measureTime + (70 * 60); // 70 (delta) = 180 minutes (delay) - 110 minutes (adjustment)
+        String expectedPayload =
+                "{\"counters\":[],\"gauges\":[{\"period\":10,\"measure_time\":" + adjustedTime
+                        + ",\"name\":\"metric\",\"value\":1}],\"source\":\"test\"}";
+        when(this.cache.size()).thenReturn(1).thenReturn(1).thenReturn(0);
+        when(this.cache.peek()).thenReturn(m);
+        Response response = mock(Response.class);
+        Future<Response> future = mock(Future.class);
+        when(future.get(any(Long.class), any(TimeUnit.class))).thenReturn(response);
+        when(this.poster.post(any(String.class), any(String.class))).thenReturn(future);
+        when(response.getStatusCode()).thenReturn(200);
+
+        this.publisher.publish();
+
+        verify(this.poster, times(1)).post(any(String.class), captor.capture());
+        assertThat(expectedPayload).isEqualTo(captor.getValue());
+    }
 }

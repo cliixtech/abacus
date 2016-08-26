@@ -1,5 +1,7 @@
 package io.cliix.abacus;
 
+import static io.cliix.abacus.Clock.now;
+
 import com.librato.metrics.CounterMeasurement;
 import com.librato.metrics.Measurement;
 import com.librato.metrics.SingleValueGaugeMeasurement;
@@ -25,14 +27,11 @@ public class MetricsRegistry {
     }
 
     public void addGaugeMeasurement(Number period, String name, Number value) {
-        this.addMeasurement(SingleValueGaugeMeasurement.builder(name, value).setPeriod(period).setMeasureTime(now()).build());
+        this.addMeasurement(
+                SingleValueGaugeMeasurement.builder(name, value).setPeriod(period).setMeasureTime(now()).build());
     }
 
     private void addMeasurement(Measurement measurement) {
         this.cache.add(measurement);
-    }
-    
-    private long now() {
-        return System.currentTimeMillis();
     }
 }
