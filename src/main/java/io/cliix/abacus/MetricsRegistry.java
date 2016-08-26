@@ -1,7 +1,5 @@
 package io.cliix.abacus;
 
-import java.util.concurrent.TimeUnit;
-
 import com.librato.metrics.CounterMeasurement;
 import com.librato.metrics.Measurement;
 import com.librato.metrics.SingleValueGaugeMeasurement;
@@ -35,7 +33,6 @@ public class MetricsRegistry {
     }
     
     private long now() {
-        long timeMillis = System.currentTimeMillis();
-        return TimeUnit.MILLISECONDS.toSeconds(timeMillis);
+        return System.currentTimeMillis();
     }
 }
