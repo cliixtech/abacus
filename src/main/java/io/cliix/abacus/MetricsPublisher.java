@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.librato.metrics.BatchResult;
+import com.librato.metrics.CounterMeasurementBuilder;
 import com.librato.metrics.HttpPoster;
 import com.librato.metrics.LibratoBatch;
 import com.librato.metrics.Measurement;
@@ -78,6 +79,7 @@ public class MetricsPublisher {
 
         public void publish() {
             LOG.info("Publisher running. {} metrics to publish.", this.cache.size());
+            this.registerCacheSizeMetrics();
             while (this.cache.size() > 0) {
                 LibratoBatch batch = this.createMetricsBatch();
                 boolean success = this.publishMetrics(batch);
@@ -89,6 +91,17 @@ public class MetricsPublisher {
                 }
             }
             LOG.info("Publisher is going to sleep.");
+        }
+
+        private void registerCacheSizeMetrics() {
+            LibratoBatch batch =
+                    new LibratoBatch(1, Sanitizer.LAST_PASS, 30, TimeUnit.SECONDS, "abacus", this.httpPoster);
+            Measurement cacheSize =
+                    new CounterMeasurementBuilder("abacus.cache.size", (long) this.cache.size())
+                            .setMeasureTime(Clock.now())
+                            .build();
+            batch.addMeasurement(cacheSize);
+            this.publishMetrics(batch);
         }
 
         private void removeMetric() {

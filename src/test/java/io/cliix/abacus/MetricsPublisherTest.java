@@ -69,7 +69,7 @@ public class MetricsPublisherTest {
     @SuppressWarnings("unchecked")
     public void run_removeMetricOnPostSuccess()
             throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        when(this.cache.size()).thenReturn(1).thenReturn(1).thenReturn(0);
+        when(this.cache.size()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(0);
         Measurement m = SingleValueGaugeMeasurement.builder("metric", 1l).setPeriod(10l).build();
         when(this.cache.peek()).thenReturn(m);
         Response response = mock(Response.class);
@@ -104,7 +104,6 @@ public class MetricsPublisherTest {
     @Test
     @SuppressWarnings("unchecked")
     public void run_adjustOldMetric() throws IOException, InterruptedException, ExecutionException, TimeoutException {
-        when(this.cache.size()).thenReturn(1).thenReturn(0);
         long now = Clock.now();
         long measureTime = now - (180 * 60);
         Measurement m =
@@ -113,7 +112,7 @@ public class MetricsPublisherTest {
         String expectedPayload =
                 "{\"counters\":[],\"gauges\":[{\"period\":10,\"measure_time\":" + adjustedTime
                         + ",\"name\":\"metric\",\"value\":1}],\"source\":\"test\"}";
-        when(this.cache.size()).thenReturn(1).thenReturn(1).thenReturn(0);
+        when(this.cache.size()).thenReturn(1).thenReturn(1).thenReturn(1).thenReturn(0);
         when(this.cache.peek()).thenReturn(m);
         Response response = mock(Response.class);
         Future<Response> future = mock(Future.class);
@@ -123,7 +122,7 @@ public class MetricsPublisherTest {
 
         this.publisher.publish();
 
-        verify(this.poster, times(1)).post(any(String.class), captor.capture());
+        verify(this.poster, times(2)).post(any(String.class), captor.capture());
         assertThat(expectedPayload).isEqualTo(captor.getValue());
     }
 }
