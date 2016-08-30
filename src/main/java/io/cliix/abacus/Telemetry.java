@@ -4,10 +4,10 @@ import java.util.concurrent.TimeUnit;
 
 public interface Telemetry {
 
-    public void publish();
+    void publish();
 
-    public void start(long delay, TimeUnit unit);
+    void start(long delay, TimeUnit unit);
 
-    public void stop();
+    void stop();
 
 }

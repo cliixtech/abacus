@@ -4,60 +4,52 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class Abacus {
+import io.cliix.abacus.internal.CachedRegistry;
+import io.cliix.abacus.internal.InfluxDBPublisher;
+import io.cliix.abacus.internal.InternalMetrics;
+import io.cliix.abacus.internal.MeasurementsCache;
+import io.cliix.abacus.internal.PeriodicTelemetry;
 
-    private MetricsRegistry registry;
-    private MetricsPublisher publisher;
+public class Abacus implements Registry, Telemetry {
 
-    public Abacus(MetricsRegistry registry, MetricsPublisher publisher) {
+    private Registry registry;
+    private Telemetry telemetry;
+
+    public Abacus(Registry registry, Telemetry telemetry) {
         this.registry = registry;
-        this.publisher = publisher;
+        this.telemetry = telemetry;
     }
 
-    public void addCounterMeasurement(String name, Long value) {
-        this.registry.addCounterMeasurement(name, value);
+    @Override
+    public void publish() {
+        this.telemetry.publish();
     }
 
-    public void addCounterMeasurement(Number period, String name, Long value) {
-        this.registry.addCounterMeasurement(period, name, value);
+    @Override
+    public void start(long delay, TimeUnit unit) {
+        this.telemetry.start(delay, unit);
     }
 
-    public void addGaugeMeasurement(String name, Number value) {
-        this.registry.addGaugeMeasurement(name, value);
+    @Override
+    public void stop() {
+        this.telemetry.stop();
     }
 
-    public void addGaugeMeasurement(Number period, String name, Number value) {
-        this.registry.addGaugeMeasurement(period, name, value);
+    @Override
+    public void addMeasurement(String name, double value) {
+        this.registry.addMeasurement(name, value);
     }
 
-    public void shutdown() {
-        this.publisher.shutdown();
+    @Override
+    public void addMeasurement(String name, String source, double value) {
+        this.registry.addMeasurement(name, source, value);
     }
 
     public static class Builder {
         private File file;
         private long maxCacheEntries;
-        private String email;
-        private String token;
-        private long period;
-        private TimeUnit unit;
         private String source;
-
-        public Builder libratoEmail(String email) {
-            this.email = email;
-            return this;
-        }
-
-        public Builder libratoToken(String token) {
-            this.token = token;
-            return this;
-        }
-
-        public Builder publishInterval(long interval, TimeUnit unit) {
-            this.period = interval;
-            this.unit = unit;
-            return this;
-        }
+        private Publisher publisher;
 
         public Builder cacheFile(File file) {
             this.file = file;
@@ -74,30 +66,42 @@ public class Abacus {
             return this;
         }
 
+        public Builder withPublisher(Publisher publisher) {
+            this.publisher = publisher;
+            return this;
+        }
+
         public Abacus build() throws IOException {
-            MetricsCache cache = new MetricsCache(this.file, this.maxCacheEntries);
-            MetricsRegistry registry = new MetricsRegistry(cache);
-            MetricsPublisher publisher =
-                    new MetricsPublisher(this.email, this.token, this.source, cache, this.period, this.unit);
-            return new Abacus(registry, publisher);
+            MeasurementsCache cache = new MeasurementsCache(this.file, this.maxCacheEntries);
+            Registry registry = new CachedRegistry(cache, this.source);
+            Telemetry telemetry = new PeriodicTelemetry(this.publisher, cache);
+
+            InternalMetrics internalMetrics = new InternalMetrics(registry);
+            cache.setInternalMonitoring(internalMetrics);
+            this.publisher.setInternalMonitoring(internalMetrics);
+
+            return new Abacus(registry, telemetry);
         }
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        String email = args[0];
-        String token = args[1];
+        String url = args[0];
+        String user = args[1];
+        String pass = args[1];
         File f = new File("/tmp/cache.abacus");
 
+        Publisher influx = new InfluxDBPublisher(url, user, pass, "abacus");
         Abacus abaco =
                 new Abacus.Builder()
                         .cacheFile(f)
                         .source("AbacusMain")
-                        .publishInterval(5, TimeUnit.SECONDS)
-                        .libratoToken(token)
-                        .libratoEmail(email)
                         .cacheMaxEntries(10000)
+                        .withPublisher(influx)
                         .build();
-        abaco.addCounterMeasurement("AbacusManualTesting", 5l);
+        abaco.addMeasurement("AbacusManualTesting", .1d);
+        abaco.addMeasurement("AbacusManualTesting", "test-main", .2d);
+        abaco.addMeasurement("AbacusManualTesting", .5d);
+        abaco.publish();
         Thread.sleep(10000);
     }
 }

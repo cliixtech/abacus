@@ -1,4 +1,4 @@
-package io.cliix.abacus;
+package io.cliix.abacus.internal;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,20 +8,23 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.librato.metrics.Measurement;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.ObjectQueue;
 import com.squareup.tape.ObjectQueue.Listener;
 
-public class MetricsCache {
+import io.cliix.abacus.Measurement;
 
-    private static final Logger LOG = LoggerFactory.getLogger(MetricsCache.class);
+public class MeasurementsCache implements InternalMonitoring {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MeasurementsCache.class);
     private final FileObjectQueue<Measurement> diskQ;
     private final Lock monitor = new ReentrantLock();
+    private CacheSizeListener cacheSizeListener;
 
-    public MetricsCache(File cacheFile, long cacheMaxEntries) throws IOException {
+    public MeasurementsCache(File cacheFile, long cacheMaxEntries) throws IOException {
         this.diskQ = new FileObjectQueue<>(cacheFile, new MeasurementGsonConverter());
-        this.diskQ.setListener(new CacheSizeListener(this, cacheMaxEntries));
+        this.cacheSizeListener = new CacheSizeListener(this, cacheMaxEntries);
+        this.diskQ.setListener(this.cacheSizeListener);
     }
 
     public void add(Measurement entry) {
@@ -60,12 +63,18 @@ public class MetricsCache {
         }
     }
 
-    private class CacheSizeListener implements Listener<Measurement> {
+    @Override
+    public void setInternalMonitoring(InternalMetrics internalMetrics) {
+        this.cacheSizeListener.setInternalMonitoring(internalMetrics);
+    }
 
-        private MetricsCache cache;
+    private class CacheSizeListener implements Listener<Measurement>, InternalMonitoring {
+
+        private MeasurementsCache cache;
         private long maxEntries;
+        private InternalMetrics monitoring;
 
-        public CacheSizeListener(MetricsCache metricsCache, long cacheMaxEntries) {
+        public CacheSizeListener(MeasurementsCache metricsCache, long cacheMaxEntries) {
             this.cache = metricsCache;
             this.maxEntries = cacheMaxEntries;
         }
@@ -83,12 +92,18 @@ public class MetricsCache {
         }
 
         private void trimCache() {
+            this.monitoring.cacheOverload();
             this.cache.remove();
         }
 
         @Override
         public void onRemove(ObjectQueue<Measurement> queue) {
             // nothing to do here
+        }
+
+        @Override
+        public void setInternalMonitoring(InternalMetrics internalMetrics) {
+            this.monitoring = internalMetrics;
         }
     }
 }
