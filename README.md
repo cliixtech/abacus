@@ -2,13 +2,14 @@
 
 [![CircleCI](https://circleci.com/gh/cliixtech/abacus.svg?style=svg)](https://circleci.com/gh/cliixtech/abacus)
 
-Abacus is a library to register and publish metrics to [Librato](https://www.librato.com/) periodically,
+Abacus is a library to register metrics and publish them periodically to a external source,
 with file caching and aiming to run on Android.
 
-It stores all the metrics on a file-backed cache, and try to send them to librato on fixed intervals.
+It stores all the metrics on a file-backed cache, and try to send them in a background thread on fixed intervals.
 
-The cache layer is powered by [Tape](https://github.com/square/tape) and the librato integration is
-made using Librato's official [java library](https://github.com/librato/librato-java).
+The cache layer is powered by [Tape](https://github.com/square/tape).
+
+Currently, it supports publishing metrics to (InfluxDB)[https://influxdata.com/time-series-platform/influxdb/], but it's build with flexibility in mind, so adding new services should be very simple.
 
 # Building
 
