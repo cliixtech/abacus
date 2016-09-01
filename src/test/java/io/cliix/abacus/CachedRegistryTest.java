@@ -5,6 +5,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -22,42 +25,49 @@ public class CachedRegistryTest {
     public void init() {
     }
 
+    private final String DEFAULT_TAG_KEY = "source";
+    private final String DEFAULT_TAG_VALUE = "unitTest";
     private MeasurementsCache cacheMock;
     private Registry registry;
-    private String source;
+    private Map<String, String> tags;
 
     @Before
     public void setUp() {
         this.cacheMock = mock(MeasurementsCache.class);
-        this.source = "test";
-        this.registry = new CachedRegistry(this.cacheMock, this.source);
+        this.tags = new HashMap<>();
+        this.tags.put("source", "unitTest");
+        this.registry = new CachedRegistry(this.cacheMock, this.tags);
         initMocks(this);
     }
 
     @Test
-    public void addCounter_callCache() {
+    public void addCounter_withTags_callCache() {
         String name = "some";
         Double value = 1.5d;
+        String tagKey = "other";
+        String tagValue = "anything";
 
-        this.registry.addMeasurement(name, this.source, value);
+        Map<String, String> myTags = new HashMap<>();
+        myTags.put(tagKey, tagValue);
+
+        this.registry.addMeasurement(name, value, myTags);
 
         verify(this.cacheMock).add(captor.capture());
         assertThat(name).isEqualTo(captor.getValue().getName());
-        assertThat(this.source).isEqualTo(captor.getValue().getSource());
+        assertThat(tagValue).isEqualTo(captor.getValue().getTags().get(tagKey));
         assertThat(value).isEqualTo(captor.getValue().getValue());
     }
 
     @Test
-    public void addCounter_withSource_callCache() {
+    public void addCounter_withoutTags_callCache_defaultTags() {
         String name = "some";
         Double value = 1.5d;
-        String otherSource = "other";
 
-        this.registry.addMeasurement(name, otherSource, value);
+        this.registry.addMeasurement(name, value);
 
         verify(this.cacheMock).add(captor.capture());
         assertThat(name).isEqualTo(captor.getValue().getName());
-        assertThat(otherSource).isEqualTo(captor.getValue().getSource());
+        assertThat(DEFAULT_TAG_VALUE).isEqualTo(captor.getValue().getTags().get(DEFAULT_TAG_KEY));
         assertThat(value).isEqualTo(captor.getValue().getValue());
     }
 }

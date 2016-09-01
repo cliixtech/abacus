@@ -2,6 +2,8 @@ package io.cliix.abacus;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.cliix.abacus.internal.CachedRegistry;
@@ -41,15 +43,15 @@ public class Abacus implements Registry, Telemetry {
     }
 
     @Override
-    public void addMeasurement(String name, String source, double value) {
-        this.registry.addMeasurement(name, source, value);
+    public void addMeasurement(String name, double value, Map<String, String> tags) {
+        this.registry.addMeasurement(name, value, tags);
     }
 
     public static class Builder {
         private File file;
         private long maxCacheEntries;
-        private String source;
         private Publisher publisher;
+        private Map<String, String> tags = Collections.emptyMap();
 
         public Builder cacheFile(File file) {
             this.file = file;
@@ -61,8 +63,8 @@ public class Abacus implements Registry, Telemetry {
             return this;
         }
 
-        public Builder source(String source) {
-            this.source = source;
+        public Builder tags(Map<String, String> tags) {
+            this.tags = tags;
             return this;
         }
 
@@ -73,7 +75,7 @@ public class Abacus implements Registry, Telemetry {
 
         public Abacus build() throws IOException {
             MeasurementsCache cache = new MeasurementsCache(this.file, this.maxCacheEntries);
-            Registry registry = new CachedRegistry(cache, this.source);
+            Registry registry = new CachedRegistry(cache, this.tags);
             Telemetry telemetry = new PeriodicTelemetry(this.publisher, cache);
 
             InternalMetrics internalMetrics = new InternalMetrics(registry);
@@ -91,15 +93,9 @@ public class Abacus implements Registry, Telemetry {
         File f = new File("/tmp/cache.abacus");
 
         Publisher influx = new InfluxDBPublisher(url, user, pass, "abacus");
-        Abacus abaco =
-                new Abacus.Builder()
-                        .cacheFile(f)
-                        .source("AbacusMain")
-                        .cacheMaxEntries(10000)
-                        .withPublisher(influx)
-                        .build();
+        Abacus abaco = new Abacus.Builder().cacheFile(f).cacheMaxEntries(10000).withPublisher(influx).build();
         abaco.addMeasurement("AbacusManualTesting", .1d);
-        abaco.addMeasurement("AbacusManualTesting", "test-main", .2d);
+        abaco.addMeasurement("AbacusManualTesting", .2d);
         abaco.addMeasurement("AbacusManualTesting", .5d);
         abaco.publish();
         Thread.sleep(10000);

@@ -71,7 +71,7 @@ public class InfluxDBPublisher implements Publisher {
         Point point = Point
                 .measurement(measurement.getName())
                 .time(measurement.getTime(), TimeUnit.MILLISECONDS)
-                .tag("source", measurement.getSource())
+                .tag(measurement.getTags())
                 .addField("value", measurement.getValue())
                 .build();
         batch.point(point);

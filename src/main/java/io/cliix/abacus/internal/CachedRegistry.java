@@ -1,5 +1,7 @@
 package io.cliix.abacus.internal;
 
+import java.util.Map;
+
 import io.cliix.abacus.Clock;
 import io.cliix.abacus.Measurement;
 import io.cliix.abacus.Registry;
@@ -7,21 +9,21 @@ import io.cliix.abacus.Registry;
 public class CachedRegistry implements Registry {
 
     private MeasurementsCache cache;
-    private String source;
+    private Map<String, String> tags;
 
-    public CachedRegistry(MeasurementsCache cache, String source) {
+    public CachedRegistry(MeasurementsCache cache, Map<String, String> tags) {
         this.cache = cache;
-        this.source = source;
+        this.tags = tags;
     }
 
     @Override
     public void addMeasurement(String name, double value) {
-        this.addMeasurement(name, this.source, value);
+        this.addMeasurement(name, value, this.tags);
     }
 
     @Override
-    public void addMeasurement(String name, String source, double value) {
-        Measurement entry = new Measurement().setName(name).setSource(source).setTime(Clock.now()).setValue(value);
+    public void addMeasurement(String name, double value, Map<String, String> tags) {
+        Measurement entry = new Measurement().setName(name).setTags(tags).setTime(Clock.now()).setValue(value);
         this.cache.add(entry);
     }
 }

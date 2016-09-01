@@ -1,10 +1,12 @@
 package io.cliix.abacus;
 
+import java.util.Map;
+
 public class Measurement {
     private String name;
-    private String source;
     private long time;
     private double value;
+    private Map<String, String> tags;
 
     public String getName() {
         return name;
@@ -15,12 +17,12 @@ public class Measurement {
         return this;
     }
 
-    public String getSource() {
-        return source;
+    public Map<String, String> getTags() {
+        return tags;
     }
 
-    public Measurement setSource(String source) {
-        this.source = source;
+    public Measurement setTags(Map<String, String> tags) {
+        this.tags = tags;
         return this;
     }
 
