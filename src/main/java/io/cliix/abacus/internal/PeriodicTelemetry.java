@@ -32,6 +32,7 @@ public class PeriodicTelemetry implements Telemetry {
             this.runner = new TelemetryRunner(this, delay, unit);
             this.publishThread = new Thread(this.runner, "Abacus-TelemetryRunner");
             this.publishThread.setDaemon(true);
+            this.publishThread.start();
             LOG.info("Starting publish task to run periodically after {} {}", delay, unit);
         }
     }
