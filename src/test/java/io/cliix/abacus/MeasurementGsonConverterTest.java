@@ -4,12 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.librato.metrics.CounterMeasurement;
-import com.librato.metrics.SingleValueGaugeMeasurement;
+import io.cliix.abacus.internal.MeasurementGsonConverter;
 
 public class MeasurementGsonConverterTest {
 
@@ -21,34 +22,27 @@ public class MeasurementGsonConverterTest {
     }
 
     @Test
-    public void convertGaugeMetric_bothWays() throws IOException {
+    public void convertMetric_bothWays() throws IOException {
         String name = "some";
-        Long value = 1l;
-        Number period = 10l;
+        Double value = 1.5d;
+        Map<String, String> tags = new HashMap<>();
+        tags.put("source", "unitTest");
+        long time = Clock.now();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-        SingleValueGaugeMeasurement gauge = SingleValueGaugeMeasurement.builder(name, value).setPeriod(period).build();
-        converter.toStream(gauge, stream);
-        SingleValueGaugeMeasurement loaded = (SingleValueGaugeMeasurement) converter.from(stream.toByteArray());
+        Measurement metric = new Measurement();
+        metric.setName(name);
+        metric.setTags(tags);
+        metric.setTime(time);
+        metric.setValue(value);
+        converter.toStream(metric, stream);
+        Measurement loaded = converter.from(stream.toByteArray());
 
         assertThat(name).isEqualTo(loaded.getName());
-        assertThat(value).isEqualTo(loaded.toMap().get("value").longValue());
-        assertThat(period).isEqualTo(loaded.getPeriod().longValue());
+        assertThat(tags).isEqualTo(loaded.getTags());
+        assertThat(time).isEqualTo(loaded.getTime());
+        assertThat(value).isEqualTo(loaded.getValue());
+
     }
 
-    @Test
-    public void convertCounterMetric_bothWays() throws IOException {
-        String name = "some";
-        Long value = 1l;
-        Number period = 10l;
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
-        CounterMeasurement gauge = CounterMeasurement.builder(name, value).setPeriod(period).build();
-        converter.toStream(gauge, stream);
-        CounterMeasurement loaded = (CounterMeasurement) converter.from(stream.toByteArray());
-
-        assertThat(name).isEqualTo(loaded.getName());
-        assertThat(value).isEqualTo(loaded.toMap().get("value").longValue());
-        assertThat(period).isEqualTo(loaded.getPeriod().longValue());
-    }
 }
