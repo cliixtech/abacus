@@ -42,7 +42,7 @@ public class InfluxDBPublisher implements Publisher {
     public void publish(MeasurementsCache cache) {
         long cacheSize = cache.size();
         this.monitoring.cacheSize(cacheSize);
-        LOG.info("Publisher running. {} metrics to publish.", cacheSize);
+        LOG.debug("Publisher running. {} metrics to publish.", cacheSize);
         long startTime = Clock.now();
         try {
             while (cache.size() > 0) {
@@ -57,7 +57,7 @@ public class InfluxDBPublisher implements Publisher {
         } finally {
             this.monitoring.publishTime(Clock.millisSince(startTime));
         }
-        LOG.info("Publisher is going to sleep.");
+        LOG.debug("Publisher is going to sleep.");
     }
 
     private BatchPoints createMetricsBatch(Measurement measurement) {
