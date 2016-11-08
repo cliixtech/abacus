@@ -1,5 +1,6 @@
 package io.cliix.abacus.internal;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import io.cliix.abacus.Clock;
@@ -23,7 +24,16 @@ public class CachedRegistry implements Registry {
 
     @Override
     public void addMeasurement(String name, double value, Map<String, String> tags) {
-        Measurement entry = new Measurement().setName(name).setTags(tags).setTime(Clock.now()).setValue(value);
+        Map<String, String> allTags;
+        if (this.tags.size() > 0) {
+            allTags = new HashMap<>();
+            allTags.putAll(this.tags);
+            allTags.putAll(tags);
+        } else {
+            allTags = tags;
+        }
+
+        Measurement entry = new Measurement().setName(name).setTags(allTags).setTime(Clock.now()).setValue(value);
         this.cache.add(entry);
     }
 }
