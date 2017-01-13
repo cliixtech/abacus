@@ -28,12 +28,24 @@ public class PeriodicTelemetry implements Telemetry {
 
     @Override
     public void start(long delay, TimeUnit unit) {
+        this.flushExistent();
+
         if (this.publishThread == null) {
             this.runner = new TelemetryRunner(this, delay, unit);
             this.publishThread = new Thread(this.runner, "Abacus-TelemetryRunner");
             this.publishThread.setDaemon(true);
             this.publishThread.start();
             LOG.info("Starting publish task to run periodically after {} {}", delay, unit);
+        }
+    }
+
+    private void flushExistent() {
+        if (this.cache.size() > 0) {
+            try {
+                this.publish();
+            } catch (Throwable e) {
+                LOG.error("Ops, an error occurred o publishing existent metrics.", e);
+            }
         }
     }
 
