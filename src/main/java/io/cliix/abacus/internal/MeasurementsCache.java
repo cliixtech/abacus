@@ -92,8 +92,10 @@ public class MeasurementsCache implements InternalMonitoring {
         }
 
         private void trimCache() {
+            for(int i = 0; i < 10; i++) {
+                this.cache.remove();
+            }
             this.monitoring.cacheOverload();
-            this.cache.remove();
         }
 
         @Override
