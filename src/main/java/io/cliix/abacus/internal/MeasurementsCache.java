@@ -86,7 +86,8 @@ public class MeasurementsCache {
         }
 
         private void trimCache() {
-            for(int i = 0; i < 10; i++) {
+            // if cache reach its capacity, trim 10% of it.
+            for (int i = 0; i < this.maxEntries / 10; i++) {
                 this.cache.remove();
             }
         }
