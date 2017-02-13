@@ -4,7 +4,6 @@ import io.cliix.abacus.Registry;
 
 public class InternalMetrics {
 
-    private static final String CACHE_OVERLOAD = "abacus.cache.overload";
     private static final String CACHE_SIZE_METRIC = "abacus.cache.size";
     private static final String PUBLISH_TIME_MS = "abacus.publish.durationMs";
     private static final String PUBLISH_SUCCESS = "abacus.publish.fail";
@@ -17,10 +16,6 @@ public class InternalMetrics {
 
     public void cacheSize(long cacheSize) {
         this.registry.addMeasurement(CACHE_SIZE_METRIC, cacheSize);
-    }
-
-    public void cacheOverload() {
-        this.registry.addMeasurement(CACHE_OVERLOAD, 1);
     }
 
     public void publishTime(long timeMs) {

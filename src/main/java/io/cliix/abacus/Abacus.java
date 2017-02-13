@@ -79,7 +79,6 @@ public class Abacus implements Registry, Telemetry {
             Telemetry telemetry = new PeriodicTelemetry(this.publisher, cache);
 
             InternalMetrics internalMetrics = new InternalMetrics(registry);
-            cache.setInternalMonitoring(internalMetrics);
             this.publisher.setInternalMonitoring(internalMetrics);
 
             return new Abacus(registry, telemetry);

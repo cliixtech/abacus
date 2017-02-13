@@ -14,7 +14,7 @@ import com.squareup.tape.ObjectQueue.Listener;
 
 import io.cliix.abacus.Measurement;
 
-public class MeasurementsCache implements InternalMonitoring {
+public class MeasurementsCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(MeasurementsCache.class);
     private final FileObjectQueue<Measurement> diskQ;
@@ -63,16 +63,10 @@ public class MeasurementsCache implements InternalMonitoring {
         }
     }
 
-    @Override
-    public void setInternalMonitoring(InternalMetrics internalMetrics) {
-        this.cacheSizeListener.setInternalMonitoring(internalMetrics);
-    }
-
-    private class CacheSizeListener implements Listener<Measurement>, InternalMonitoring {
+    private class CacheSizeListener implements Listener<Measurement> {
 
         private MeasurementsCache cache;
         private long maxEntries;
-        private InternalMetrics monitoring;
 
         public CacheSizeListener(MeasurementsCache metricsCache, long cacheMaxEntries) {
             this.cache = metricsCache;
@@ -95,17 +89,11 @@ public class MeasurementsCache implements InternalMonitoring {
             for(int i = 0; i < 10; i++) {
                 this.cache.remove();
             }
-            this.monitoring.cacheOverload();
         }
 
         @Override
         public void onRemove(ObjectQueue<Measurement> queue) {
             // nothing to do here
-        }
-
-        @Override
-        public void setInternalMonitoring(InternalMetrics internalMetrics) {
-            this.monitoring = internalMetrics;
         }
     }
 }
