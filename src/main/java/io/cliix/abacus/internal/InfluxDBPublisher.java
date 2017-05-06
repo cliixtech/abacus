@@ -53,6 +53,7 @@ public class InfluxDBPublisher implements Publisher {
             this.monitoring.publishSuccess();
         } catch (Exception e) {
             LOG.error("Error publishing metrics", e);
+            cache.remove(); // discard metrics on failure?
             this.monitoring.publishFailure();
         } finally {
             this.monitoring.publishTime(Clock.millisSince(startTime));
