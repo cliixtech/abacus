@@ -14,7 +14,7 @@ public class CachedRegistry implements Registry {
 
     public CachedRegistry(MeasurementsCache cache, Map<String, String> tags) {
         this.cache = cache;
-        this.tags = tags;
+        this.tags = this.cleanTags(tags);
     }
 
     @Override
@@ -24,6 +24,7 @@ public class CachedRegistry implements Registry {
 
     @Override
     public void addMeasurement(String name, double value, Map<String, String> tags) {
+        tags = this.cleanTags(tags);
         Map<String, String> allTags;
         if (this.tags.size() > 0) {
             allTags = new HashMap<>();
@@ -35,5 +36,15 @@ public class CachedRegistry implements Registry {
 
         Measurement entry = new Measurement().setName(name).setTags(allTags).setTime(Clock.now()).setValue(value);
         this.cache.add(entry);
+    }
+
+    private Map<String, String> cleanTags(Map<String, String> tags) {
+        Map<String, String> cleaned = new HashMap<>();
+        for (Map.Entry<String, String> entry: tags.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                cleaned.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return cleaned;
     }
 }

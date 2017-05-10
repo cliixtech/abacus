@@ -41,6 +41,30 @@ public class CachedRegistryTest {
     }
 
     @Test
+    public void addCounter_withTags_cleanTags() {
+        String name = "some";
+        Double value = 1.5d;
+        String tagKey = "other";
+        String tagValue = "anything";
+
+        Map<String, String> myTags = new HashMap<>();
+        myTags.put(tagKey, tagValue);
+        myTags.put("fuckedUpTag1", null);
+        myTags.put("fuckedUpTag2", "");
+
+        this.registry.addMeasurement(name, value, myTags);
+
+        Map<String, String> expectedTags = new HashMap<>();
+        expectedTags.put("source", "unitTest");
+        expectedTags.put(tagKey, tagValue);
+
+        verify(this.cacheMock).add(captor.capture());
+        assertThat(captor.getValue().getName()).isEqualTo(name);
+        assertThat(captor.getValue().getTags()).isEqualTo(expectedTags);
+        assertThat(captor.getValue().getValue()).isEqualTo(value);
+    }
+
+    @Test
     public void addCounter_withTags_callCache() {
         String name = "some";
         Double value = 1.5d;
