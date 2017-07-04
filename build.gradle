@@ -22,7 +22,7 @@ dependencies {
   implementation (
    'org.slf4j:slf4j-jdk14:1.7.21',
     'com.squareup:tape:1.2.3',
-    'org.influxdb:influxdb-java:2.7',
+    'org.influxdb:influxdb-java:2.5',
     'com.google.code.gson:gson:2.7'
   )
   testCompile(

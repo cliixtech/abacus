@@ -44,8 +44,8 @@ public class Measurement {
         this.value = value;
         return this;
     }
-    
-    public boolean isValid() { 
+
+    public boolean isValid() {
         return this.value != null && this.time != null && this.name != null;
     }
 }
