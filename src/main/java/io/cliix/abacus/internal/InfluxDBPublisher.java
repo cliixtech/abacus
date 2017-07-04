@@ -46,8 +46,11 @@ public class InfluxDBPublisher implements Publisher {
         long startTime = Clock.now();
         try {
             while (cache.size() > 0) {
-                BatchPoints batch = this.createMetricsBatch(cache.peek());
-                this.publishMetrics(batch);
+                Measurement m = cache.peek();
+                if (m.isValid()) {
+                    BatchPoints batch = this.createMetricsBatch(m);
+                    this.publishMetrics(batch);
+                }
                 cache.remove();
             }
             this.monitoring.publishSuccess();
@@ -68,12 +71,13 @@ public class InfluxDBPublisher implements Publisher {
                         .retentionPolicy("default")
                         .consistency(ConsistencyLevel.ALL)
                         .build();
-        Point point = Point
-                .measurement(measurement.getName())
-                .time(measurement.getTime(), TimeUnit.MILLISECONDS)
-                .tag(measurement.getTags())
-                .addField("value", measurement.getValue())
-                .build();
+        Point point =
+                Point
+                        .measurement(measurement.getName())
+                        .time(measurement.getTime(), TimeUnit.MILLISECONDS)
+                        .tag(measurement.getTags())
+                        .addField("value", measurement.getValue())
+                        .build();
         batch.point(point);
         return batch;
     }

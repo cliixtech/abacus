@@ -1,12 +1,13 @@
 package io.cliix.abacus;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class Measurement {
     private String name;
-    private long time;
-    private double value;
-    private Map<String, String> tags;
+    private Long time;
+    private Double value;
+    private Map<String, String> tags = Collections.emptyMap();
 
     public String getName() {
         return name;
@@ -30,7 +31,7 @@ public class Measurement {
         return time;
     }
 
-    public Measurement setTime(long time) {
+    public Measurement setTime(Long time) {
         this.time = time;
         return this;
     }
@@ -39,8 +40,12 @@ public class Measurement {
         return value;
     }
 
-    public Measurement setValue(double value) {
+    public Measurement setValue(Double value) {
         this.value = value;
         return this;
+    }
+    
+    public boolean isValid() { 
+        return this.value != null && this.time != null && this.name != null;
     }
 }
